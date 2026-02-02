@@ -75,17 +75,33 @@ function UpgradePage() {
 
   const tiers = [
     {
+      id: 'basic',
+      name: 'Basic',
+      icon: Shield,
+      color: 'gray',
+      price: 'Free',
+      description: 'Free tier for all registered users',
+      features: [
+        { name: 'Browse professionals', included: true },
+        { name: 'Read articles & research', included: true },
+        { name: 'View profiles', included: true },
+        { name: 'Save favorites', included: true },
+      ],
+      current: isBasic,
+    },
+    {
       id: 'plus',
       name: 'Plus',
       icon: Zap,
       color: 'green',
-      price: 'Free',
-      description: 'For professionals who want to offer consultations',
+      price: 'TZS 5,000',
+      description: 'For professionals offering consultation services',
       features: [
+        { name: 'All Basic features', included: true },
         { name: 'Create consultation offers', included: true },
         { name: 'Message with clients', included: true },
         { name: 'Apply for jobs', included: true },
-        { name: 'Post articles & research', included: true },
+        { name: 'Post articles', included: true },
         { name: 'Receive reviews', included: true },
         { name: 'Basic analytics', included: true },
       ],
@@ -93,17 +109,18 @@ function UpgradePage() {
     },
     {
       id: 'premium',
-      name: 'Premium Expert',
+      name: 'Premium',
       icon: Crown,
       color: 'yellow',
-      price: 'KES 5,000/year',
-      description: 'For verified experts who want to maximize their earnings',
+      price: 'TZS 15,000',
+      description: 'For verified experts with full platform access',
       features: [
         { name: 'All Plus features', included: true },
         { name: 'Gold verification badge', included: true },
         { name: 'Top Expert listing', included: true },
         { name: 'Sell digital products', included: true },
         { name: 'Sell merchandise', included: true },
+        { name: 'Post research', included: true },
         { name: 'Advanced analytics', included: true },
         { name: 'Priority support', included: true },
       ],
@@ -113,24 +130,34 @@ function UpgradePage() {
 
   const getColorClasses = (color) => ({
     bg: {
+      gray: 'bg-gray-500',
       green: 'bg-green-500',
       yellow: 'bg-yellow-500',
     }[color],
     light: {
+      gray: 'bg-gray-50 dark:bg-gray-900/20',
       green: 'bg-green-50 dark:bg-green-900/20',
       yellow: 'bg-yellow-50 dark:bg-yellow-900/20',
     }[color],
     text: {
+      gray: 'text-gray-600 dark:text-gray-400',
       green: 'text-green-600 dark:text-green-400',
       yellow: 'text-yellow-600 dark:text-yellow-400',
     }[color],
     border: {
+      gray: 'border-gray-200 dark:border-gray-700',
       green: 'border-green-200 dark:border-green-800',
       yellow: 'border-yellow-200 dark:border-yellow-800',
     }[color],
     hover: {
+      gray: 'hover:border-gray-400',
       green: 'hover:border-green-400',
       yellow: 'hover:border-yellow-400',
+    }[color],
+    badge: {
+      gray: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
+      green: 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300',
+      yellow: 'bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300',
     }[color],
   })
 
@@ -174,7 +201,7 @@ function UpgradePage() {
           Account Plans
         </h1>
         <p className="text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-          Choose the plan that fits your needs
+          Choose the plan that fits your needs. You can upgrade directly to Premium without subscribing to Plus first.
         </p>
       </div>
 
@@ -210,12 +237,12 @@ function UpgradePage() {
       )}
 
       {/* Tier Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {tiers.map((tier) => {
           const colorClasses = getColorClasses(tier.color)
           const Icon = tier.icon
           const isCurrent = tier.current
-          const canUpgrade = (isBasic && tier.id === 'plus') || (isProfessional && tier.id === 'premium')
+          const canUpgrade = (isBasic && (tier.id === 'plus' || tier.id === 'premium')) || (isProfessional && tier.id === 'premium')
 
           return (
             <motion.div
@@ -235,7 +262,7 @@ function UpgradePage() {
                     <Icon className={`w-8 h-8 ${colorClasses.text}`} />
                   </div>
                   {isCurrent && (
-                    <span className={`badge ${colorClasses.text.replace('text-', 'bg-').replace('dark:', '')} bg-opacity-10`}>
+                    <span className={`badge ${colorClasses.badge}`}>
                       Current Plan
                     </span>
                   )}
@@ -272,11 +299,11 @@ function UpgradePage() {
                         : 'bg-green-500 hover:bg-green-600 text-white'
                     }`}
                   >
-                    Upgrade to {tier.name}
+                    {tier.id === 'premium' ? 'Upgrade to Premium' : 'Upgrade to ' + tier.name}
                   </button>
                 ) : (
                   <button disabled className="btn w-full opacity-50 cursor-not-allowed">
-                    {isBasic && tier.id === 'premium' ? 'Plus plan required' : 'Not available'}
+                    Not available
                   </button>
                 )}
               </div>
@@ -371,6 +398,8 @@ function UpgradePage() {
               {[
                 { feature: 'Browse professionals', basic: true, plus: true, premium: true },
                 { feature: 'Read articles & research', basic: true, plus: true, premium: true },
+                { feature: 'View profiles', basic: true, plus: true, premium: true },
+                { feature: 'Save favorites', basic: true, plus: true, premium: true },
                 { feature: 'Message experts', basic: false, plus: true, premium: true },
                 { feature: 'Initiate consultations', basic: false, plus: true, premium: true },
                 { feature: 'Post articles', basic: false, plus: true, premium: true },
@@ -424,6 +453,15 @@ function UpgradePage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Select a plan above and follow the payment instructions. Once you've made the payment, 
               submit your upgrade request with the payment details. We'll review and activate your upgrade within 24-48 hours.
+            </p>
+          </div>
+          <div className="p-4 bg-gray-50 dark:bg-dark-700 rounded-lg">
+            <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+              Can I upgrade directly to Premium?
+            </h4>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Yes, you can upgrade directly to Premium from Basic without subscribing to Plus first.
+              Choose Premium from the plan options to proceed.
             </p>
           </div>
           <div className="p-4 bg-gray-50 dark:bg-dark-700 rounded-lg">

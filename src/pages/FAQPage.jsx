@@ -4,64 +4,97 @@ import { ChevronDown, ChevronUp, HelpCircle, AlertCircle, RefreshCw } from 'luci
 import { faqService } from '../services/api'
 
 function FAQPage() {
-  const [faqs, setFaqs] = useState([])
-  const [categories, setCategories] = useState([])
+  const [allFaqs, setAllFaqs] = useState([])
+  const [categories, setCategories] = useState(['general', 'verification', 'tiers', 'payments'])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [openIndex, setOpenIndex] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Fetch all FAQs once on mount
   useEffect(() => {
-    fetchFaqs()
-  }, [selectedCategory])
-
-  const fetchFaqs = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const params = selectedCategory !== 'all' ? { category: selectedCategory } : {}
-      const response = await faqService.getAll(params)
-      
-      // Handle different response formats (array, paginated response, or object with results)
-      let faqsData = response.data
-      if (Array.isArray(faqsData)) {
-        setFaqs(faqsData)
-      } else if (faqsData && Array.isArray(faqsData.results)) {
-        // Handle paginated response
-        setFaqs(faqsData.results)
-        faqsData = faqsData.results
-      } else {
-        console.error('Unexpected response format:', response.data)
-        setFaqs([])
-        faqsData = []
+    const fetchFaqs = async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await faqService.getAll()
+        
+        // Handle different response formats (array, paginated response, or object with results)
+        let faqsData = response.data
+        if (Array.isArray(faqsData)) {
+          setAllFaqs(faqsData)
+        } else if (faqsData && Array.isArray(faqsData.results)) {
+          // Handle paginated response
+          setAllFaqs(faqsData.results)
+          faqsData = faqsData.results
+        } else {
+          console.error('Unexpected response format:', response.data)
+          setAllFaqs([])
+          faqsData = []
+        }
+        
+        // Extract unique categories from database and merge with common categories
+        const commonCategories = ['general', 'verification', 'tiers', 'payments']
+        if (faqsData.length > 0) {
+          const dbCategories = [...new Set(faqsData.map(faq => faq.category))]
+          // Merge common categories with database categories, avoiding duplicates
+          const allCategories = [...new Set([...commonCategories, ...dbCategories])]
+          setCategories(allCategories)
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err)
+        setError('Failed to load FAQs. Please try again.')
+        setAllFaqs([])
+      } finally {
+        setLoading(false)
       }
-      
-      // Extract unique categories only if we have data
-      if (faqsData.length > 0) {
-        const uniqueCategories = [...new Set(faqsData.map(faq => faq.category))]
-        setCategories(uniqueCategories)
-      } else {
-        setCategories([])
-      }
-    } catch (err) {
-      console.error('Error fetching FAQs:', err)
-      setError('Failed to load FAQs. Please try again.')
-      setFaqs([])
-      setCategories([])
-    } finally {
-      setLoading(false)
     }
-  }
+    fetchFaqs()
+  }, [])
 
   const handleRetry = () => {
+    setLoading(true)
+    setError(null)
+    const fetchFaqs = async () => {
+      try {
+        const response = await faqService.getAll()
+        let faqsData = response.data
+        if (Array.isArray(faqsData)) {
+          setAllFaqs(faqsData)
+        } else if (faqsData && Array.isArray(faqsData.results)) {
+          setAllFaqs(faqsData.results)
+          faqsData = faqsData.results
+        } else {
+          setAllFaqs([])
+          faqsData = []
+        }
+        
+        const commonCategories = ['general', 'verification', 'tiers', 'payments']
+        if (faqsData.length > 0) {
+          const dbCategories = [...new Set(faqsData.map(faq => faq.category))]
+          const allCategories = [...new Set([...commonCategories, ...dbCategories])]
+          setCategories(allCategories)
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err)
+        setError('Failed to load FAQs. Please try again.')
+        setAllFaqs([])
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchFaqs()
   }
 
-  // Group FAQs by category
-  const groupedFaqs = categories.reduce((acc, category) => {
-    acc[category] = faqs.filter(faq => faq.category === category)
-    return acc
-  }, {})
+  // Filter FAQs based on selected category (local filtering)
+  const filteredFaqs = selectedCategory === 'all' 
+    ? allFaqs 
+    : allFaqs.filter(faq => faq.category === selectedCategory)
+
+  // Reset open index when category changes
+  useEffect(() => {
+    setOpenIndex(null)
+  }, [selectedCategory])
 
   if (loading) {
     return (
@@ -127,71 +160,86 @@ function FAQPage() {
       </div>
 
       {/* Category Filter */}
-      {categories.length > 1 && (
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
+      <div className="flex flex-wrap justify-center gap-2 mb-8 sticky top-4 z-10 bg-white/80 dark:bg-dark-900/80 backdrop-blur-sm py-2">
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+            selectedCategory === 'all'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-dark-600'
+          }`}
+        >
+          All
+        </button>
+        {categories.map(category => (
           <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              selectedCategory === 'all'
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
+              selectedCategory === category
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-dark-600'
             }`}
           >
-            All
+            {category}
           </button>
-          {categories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors capitalize ${
-                selectedCategory === category
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-dark-600'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {groupedFaqs[selectedCategory] || faqs.map((faq, index) => (
-          <motion.div
-            key={faq.id || index}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (faq.order || index) * 0.05 }}
-            className="card overflow-hidden"
-          >
-            <button
-              onClick={() => setOpenIndex(openIndex === index ? null : index)}
-              className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
-            >
-              <span className="font-semibold text-gray-900 dark:text-white">{faq.question}</span>
-              {openIndex === index ? (
-                <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
-              )}
-            </button>
-            <AnimatePresence>
-              {openIndex === index && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="border-t border-gray-100 dark:border-dark-700"
-                >
-                  <p className="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{faq.answer}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
         ))}
       </div>
 
-      {faqs.length === 0 && (
+      <div className="space-y-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedCategory}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {filteredFaqs.length > 0 ? (
+              filteredFaqs.map((faq, index) => (
+                <motion.div
+                  key={faq.id || index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="card overflow-hidden"
+                >
+                  <button
+                    onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                    className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+                  >
+                    <span className="font-semibold text-gray-900 dark:text-white">{faq.question}</span>
+                    {openIndex === index ? (
+                      <ChevronUp className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-500 flex-shrink-0 ml-2" />
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {openIndex === index && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-gray-100 dark:border-dark-700"
+                      >
+                        <p className="px-6 py-4 text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{faq.answer}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">No FAQs available in this category.</p>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {allFaqs.length === 0 && !loading && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">No FAQs available at the moment.</p>
         </div>

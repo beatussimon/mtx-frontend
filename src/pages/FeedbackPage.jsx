@@ -47,10 +47,13 @@ function FeedbackPage() {
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
-            <option value="general">General</option>
-            <option value="bug">Bug Report</option>
-            <option value="feature">Feature Request</option>
-            <option value="content">Content Feedback</option>
+            <option value="general">General Inquiry</option>
+            <option value="support">Technical Support</option>
+            <option value="billing">Billing & Payments</option>
+            <option value="verification">Verification</option>
+            <option value="upgrade">Account Upgrade</option>
+            <option value="consultation">Consultation Issues</option>
+            <option value="partnership">Partnership</option>
             <option value="other">Other</option>
           </select>
         </div>
