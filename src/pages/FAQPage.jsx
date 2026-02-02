@@ -21,14 +21,33 @@ function FAQPage() {
     try {
       const params = selectedCategory !== 'all' ? { category: selectedCategory } : {}
       const response = await faqService.getAll(params)
-      setFaqs(response.data)
       
-      // Extract unique categories
-      const uniqueCategories = [...new Set(response.data.map(faq => faq.category))]
-      setCategories(uniqueCategories)
+      // Handle different response formats (array, paginated response, or object with results)
+      let faqsData = response.data
+      if (Array.isArray(faqsData)) {
+        setFaqs(faqsData)
+      } else if (faqsData && Array.isArray(faqsData.results)) {
+        // Handle paginated response
+        setFaqs(faqsData.results)
+        faqsData = faqsData.results
+      } else {
+        console.error('Unexpected response format:', response.data)
+        setFaqs([])
+        faqsData = []
+      }
+      
+      // Extract unique categories only if we have data
+      if (faqsData.length > 0) {
+        const uniqueCategories = [...new Set(faqsData.map(faq => faq.category))]
+        setCategories(uniqueCategories)
+      } else {
+        setCategories([])
+      }
     } catch (err) {
       console.error('Error fetching FAQs:', err)
       setError('Failed to load FAQs. Please try again.')
+      setFaqs([])
+      setCategories([])
     } finally {
       setLoading(false)
     }

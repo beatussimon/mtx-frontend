@@ -13,7 +13,8 @@ import {
   Settings,
   Crown,
   Zap,
-  Shield
+  Shield,
+  ChevronDown
 } from 'lucide-react'
 import { useAuthStore, useThemeStore, useUIStore, tierHelpers } from '../store'
 import { notificationService } from '../services/api'
@@ -54,15 +55,22 @@ function Header() {
   const upgradeCTA = tierHelpers.getUpgradeCTA(tierInfo)
   const displayTier = tierHelpers.getDisplayTier(tierInfo)
   const isPremium = tierHelpers.isPremium(tierInfo)
-  const isProfessional = tierHelpers.isProfessional(tierInfo)
+  const isPlus = tierHelpers.isPlus(tierInfo)
 
-  const navLinks = [
+  // Organized navigation links with logical grouping
+  const mainNavLinks = [
     { name: 'Home', path: '/' },
-    { name: 'Professionals', path: '/professionals' },
-    { name: 'Articles', path: '/articles' },
-    { name: 'Research', path: '/research' },
-    { name: 'Jobs', path: '/jobs' },
-    { name: 'FAQ', path: '/faq' },
+    { name: 'Experts', path: '/professionals', description: 'Find verified professionals' },
+  ]
+
+  const contentNavLinks = [
+    { name: 'Articles', path: '/articles', description: 'Expert insights' },
+    { name: 'Research', path: '/research', description: 'Research papers' },
+    { name: 'Jobs', path: '/jobs', description: 'Career opportunities' },
+  ]
+
+  const supportNavLinks = [
+    { name: 'FAQ', path: '/faq', description: 'Get help' },
   ]
 
   return (
@@ -80,15 +88,51 @@ function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
+          <nav className="hidden lg:flex items-center space-x-1">
+            {mainNavLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
-                className={`text-sm font-medium transition-colors duration-200 ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                   location.pathname === link.path
-                    ? 'text-primary-600 dark:text-primary-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-800'
+                }`}
+              >
+                {link.name}
+              </Link>
+            ))}
+            
+            {/* Content Dropdown */}
+            <div className="relative group">
+              <button className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors duration-200 flex items-center gap-1">
+                Content
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <div className="absolute left-0 top-full mt-1 w-48 bg-white dark:bg-dark-800 rounded-xl shadow-lg border border-gray-200 dark:border-dark-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                <div className="p-2">
+                  {contentNavLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      to={link.path}
+                      className="flex flex-col px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-700"
+                    >
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{link.name}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{link.description}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            {supportNavLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                  location.pathname === link.path
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-dark-800'
                 }`}
               >
                 {link.name}
@@ -97,7 +141,7 @@ function Header() {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
@@ -117,7 +161,7 @@ function Header() {
                 {upgradeCTA && (
                   <Link
                     to="/upgrade"
-                    className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`hidden sm:flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       upgradeCTA === 'Premium'
                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
                         : 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
@@ -128,7 +172,7 @@ function Header() {
                     ) : (
                       <Zap className="w-4 h-4" />
                     )}
-                    <span className="hidden sm:inline">{upgradeCTA}</span>
+                    <span>{upgradeCTA}</span>
                   </Link>
                 )}
 
@@ -211,7 +255,7 @@ function Header() {
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors"
+                    className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                       {user?.photo ? (
@@ -231,7 +275,7 @@ function Header() {
                       <span className={`hidden sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
                         isPremium
                           ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                          : isProfessional
+                          : isPlus
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                       }`}>
@@ -261,7 +305,7 @@ function Header() {
                             <span className={`inline-flex items-center mt-2 px-2 py-0.5 rounded text-xs font-medium ${
                               isPremium
                                 ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                                : isProfessional
+                                : isPlus
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
                             }`}>
@@ -286,20 +330,20 @@ function Header() {
                           <span className="text-sm text-gray-700 dark:text-gray-300">Profile</span>
                         </Link>
                         <Link
-                          to="/messages"
-                          className="flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
-                          onClick={() => setShowUserMenu(false)}
-                        >
-                          <MessageSquare className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm text-gray-700 dark:text-gray-300">Messages</span>
-                        </Link>
-                        <Link
                           to="/settings"
                           className="flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
                           onClick={() => setShowUserMenu(false)}
                         >
                           <Settings className="w-4 h-4 text-gray-500" />
                           <span className="text-sm text-gray-700 dark:text-gray-300">Settings</span>
+                        </Link>
+                        <Link
+                          to="/messages"
+                          className="flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <MessageSquare className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">Messages</span>
                         </Link>
                         {upgradeCTA && (
                           <Link

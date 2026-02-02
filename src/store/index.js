@@ -153,7 +153,8 @@ export const useUIStore = create((set) => ({
 // Tier-aware helper functions
 export const tierHelpers = {
   isBasic: (tierInfo) => tierInfo?.is_basic === true || tierInfo?.tier === 'basic',
-  isProfessional: (tierInfo) => tierInfo?.is_professional === true || tierInfo?.tier === 'plus',
+  isPlus: (tierInfo) => tierInfo?.is_plus === true || tierInfo?.tier === 'plus',
+  isProfessional: (tierInfo) => tierInfo?.is_plus === true || tierInfo?.tier === 'plus', // Backward compatibility
   isPremium: (tierInfo) => tierInfo?.is_premium === true || tierInfo?.tier === 'premium',
   canInitiateConsultation: (tierInfo) => tierInfo?.can_initiate_consultation === true ||
     ['plus', 'premium'].includes(tierInfo?.tier),
@@ -178,7 +179,7 @@ export const tierHelpers = {
       case 'sell_items':
         return tierHelpers.canSellItems(tierInfo)
       case 'messages':
-        return tierHelpers.isProfessional(tierInfo)
+        return tierHelpers.isPlus(tierInfo)
       default:
         return false
     }

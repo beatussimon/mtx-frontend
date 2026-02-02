@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Users, BookOpen, Briefcase, Star, TrendingUp, MessageSquare, Crown, Zap, Heart } from 'lucide-react'
+import { ArrowRight, Users, BookOpen, Briefcase, Star, TrendingUp, MessageSquare, Crown, Zap, Heart, Search, Filter } from 'lucide-react'
 import { useAuthStore, tierHelpers } from '../store'
 import { categoryService, articleService, professionalService, researchService, homepageService } from '../services/api'
+import StatsGrid from '../components/StatsGrid'
 
 function HomePage() {
   const navigate = useNavigate()
@@ -14,6 +15,8 @@ function HomePage() {
   const [topProfessionals, setTopProfessionals] = useState([])
   const [homepageData, setHomepageData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
   const [stats, setStats] = useState({
     total_experts: 0,
     total_articles: 0,
@@ -22,7 +25,7 @@ function HomePage() {
   })
 
   const isBasic = tierHelpers.isBasic(tierInfo)
-  const isProfessional = tierHelpers.isProfessional(tierInfo)
+  const isPlus = tierHelpers.isPlus(tierInfo)
   const isPremium = tierHelpers.isPremium(tierInfo)
   const upgradeCTA = tierHelpers.getUpgradeCTA(tierInfo)
 
@@ -124,6 +127,13 @@ function HomePage() {
     visible: { opacity: 1, y: 0 },
   }
 
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      navigate(`/professionals?q=${encodeURIComponent(searchQuery.trim())}`)
+    }
+  }
+
   const getTierButtonText = () => {
     if (!isAuthenticated) return 'Join Now'
     if (upgradeCTA) return upgradeCTA
@@ -141,96 +151,78 @@ function HomePage() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-16"
+      className="space-y-12"
     >
-      {/* Hero Section - Subtle and informative */}
-      <section className="relative bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl p-8 md:p-12 mb-8">
-        <div className="text-center">
+      {/* Compact Hero Section with Search Bar */}
+      <section className="relative bg-gradient-to-r from-primary-50/50 to-primary-100/50 dark:from-primary-900/10 dark:to-primary-800/10 rounded-xl p-6 md:p-8">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.h1
             variants={itemVariants}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4"
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-3"
           >
             Welcome to
-            <span className="block text-primary-600 dark:text-primary-400">MtaalamuX</span>
+            <span className="text-primary-600 dark:text-primary-400 ml-2">MtaalamuX</span>
           </motion.h1>
           <motion.p
             variants={itemVariants}
-            className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8"
+            className="text-base text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-6"
           >
             {isAuthenticated
-              ? 'Continue your learning journey with verified experts and premium content.'
-              : 'Connect with verified professionals, access expert knowledge, and advance your career.'}
+              ? 'Continue your learning journey with verified experts.'
+              : 'Connect with verified professionals and access expert knowledge.'}
           </motion.p>
 
-          {/* Quick Stats */}
-          <motion.div
+          {/* Search Bar */}
+          <motion.form
             variants={itemVariants}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 max-w-2xl mx-auto"
+            onSubmit={handleSearch}
+            className="max-w-xl mx-auto mb-6"
           >
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">{stats.total_experts > 0 ? `${(stats.total_experts / 1000).toFixed(1)}K+` : '100+'}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Experts</div>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for experts, topics, or skills..."
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+              />
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+              >
+                Search
+              </button>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">{(stats.total_articles + stats.total_research) > 0 ? `${((stats.total_articles + stats.total_research) / 1000).toFixed(1)}K+` : '500+'}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Articles</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">{stats.total_consultations > 0 ? `${(stats.total_consultations / 1000).toFixed(1)}K+` : '1K+'}</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Consultations</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-primary-600 dark:text-primary-400">98%</div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">Satisfaction</div>
-            </div>
-          </motion.div>
+          </motion.form>
 
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link
-              to={getTierButtonAction()}
-              className="btn-primary px-8 py-3 flex items-center gap-2"
-            >
-              {upgradeCTA === 'Premium' && <Crown className="w-5 h-5" />}
-              {upgradeCTA === 'Upgrade' && <Zap className="w-5 h-5" />}
-              {getTierButtonText()}
-            </Link>
-            {!isAuthenticated && (
-              <Link to="/professionals" className="btn-outline px-8 py-3">
-                Explore Experts
-              </Link>
-            )}
-            {isAuthenticated && isBasic && (
-              <Link to="/professionals" className="btn-outline px-8 py-3">
-                Find Experts
-              </Link>
-            )}
+          {/* Quick Stats */}
+          <motion.div variants={itemVariants}>
+            <StatsGrid stats={stats} compact />
           </motion.div>
 
           {/* Tier indicator for authenticated users */}
           {isAuthenticated && tierInfo && (
             <motion.div
               variants={itemVariants}
-              className="mt-6 flex items-center justify-center gap-4"
+              className="mt-4 flex items-center justify-center gap-3"
             >
-              <span className="text-gray-600 dark:text-gray-400 text-sm">
-                Your current tier:
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Your tier:
               </span>
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 isPremium
                   ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                  : isProfessional
+                  : isPlus
                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
               }`}>
-                {isPremium && <Crown className="w-4 h-4 mr-1" />}
-                {isProfessional && <Zap className="w-4 h-4 mr-1" />}
+                {isPremium && <Crown className="w-3 h-3 mr-1" />}
+                {isPlus && <Zap className="w-3 h-3 mr-1" />}
                 {tierHelpers.getDisplayTier(tierInfo)}
               </span>
               {upgradeCTA && (
-                <Link to="/upgrade" className="text-primary-600 dark:text-primary-400 underline text-sm hover:text-primary-700 dark:hover:text-primary-300">
+                <Link to="/upgrade" className="text-xs text-primary-600 dark:text-primary-400 hover:underline">
                   {upgradeCTA}
                 </Link>
               )}
@@ -290,27 +282,7 @@ function HomePage() {
         </section>
       )}
 
-      {/* Stats Section - Dynamic */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {[
-          { icon: Users, label: 'Verified Experts', value: stats.total_experts > 0 ? `${(stats.total_experts / 1000).toFixed(1)}K+` : '100+' },
-          { icon: BookOpen, label: 'Articles & Research', value: (stats.total_articles + stats.total_research) > 0 ? `${((stats.total_articles + stats.total_research) / 1000).toFixed(1)}K+` : '500+' },
-          { icon: MessageSquare, label: 'Consultations', value: stats.total_consultations > 0 ? `${(stats.total_consultations / 1000).toFixed(1)}K+` : '1K+' },
-          { icon: Star, label: 'Satisfaction', value: '98%' },
-        ].map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            variants={itemVariants}
-            className="card p-6 text-center"
-          >
-            <stat.icon className="w-8 h-8 mx-auto mb-3 text-primary-600 dark:text-primary-400" />
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{stat.label}</p>
-          </motion.div>
-        ))}
-      </section>
 
-      {/* Categories Section */}
       <section>
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">

@@ -20,6 +20,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import UpgradePage from './pages/UpgradePage'
 import FAQPage from './pages/FAQPage'
 import FeedbackPage from './pages/FeedbackPage'
+import SettingsPage from './pages/SettingsPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -122,6 +123,14 @@ function App() {
           element={
             <ProtectedRoute>
               <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
             </ProtectedRoute>
           }
         />
