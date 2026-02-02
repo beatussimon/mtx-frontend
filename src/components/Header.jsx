@@ -161,7 +161,7 @@ function Header() {
                 {upgradeCTA && (
                   <Link
                     to="/upgrade"
-                    className={`hidden sm:flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    className={`hidden md:flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       upgradeCTA === 'Premium'
                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
                         : 'bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-gray-400'
@@ -179,14 +179,14 @@ function Header() {
                 {/* Messages */}
                 <Link
                   to="/messages"
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors relative"
+                  className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors relative"
                   aria-label="Messages"
                 >
                   <MessageSquare className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                 </Link>
 
                 {/* Notifications */}
-                <div className="relative">
+                <div className="relative hidden md:flex">
                   <button
                     onClick={() => setShowNotifications(!showNotifications)}
                     className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors relative"
@@ -252,7 +252,7 @@ function Header() {
                 </div>
 
                 {/* User menu */}
-                <div className="relative">
+                <div className="relative hidden md:block">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors"
