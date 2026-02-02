@@ -1,42 +1,86 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Star, MapPin, Users, Award, MessageSquare } from 'lucide-react'
+import { Star, MapPin, Users, Award, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react'
 import { professionalService } from '../services/api'
 import { useAuthStore } from '../store'
 
 function ProfessionalDetailPage() {
   const { id } = useParams()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, token } = useAuthStore()
   const [professional, setProfessional] = useState(null)
   const [articles, setArticles] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [error, setError] = useState(null)
+  const [errorType, setErrorType] = useState(null)
+  const [retryCount, setRetryCount] = useState(0)
+
+  const fetchData = useCallback(async () => {
+    // Reset error state
+    setError(null)
+    setErrorType(null)
+    setLoading(true)
+
+    try {
+      const requests = [
+        professionalService.getById(id),
+        professionalService.getArticles(id),
+        professionalService.getReviews(id),
+      ]
+
+      const [profRes, articlesRes, reviewsRes] = await Promise.all(requests)
+      
+      setProfessional(profRes.data)
+      setArticles(articlesRes.data.results || articlesRes.data)
+      setReviews(reviewsRes.data.results || reviewsRes.data)
+      setError(null)
+      setErrorType(null)
+    } catch (err) {
+      const status = err.response?.status
+      const message = err.response?.data?.detail || err.response?.data?.error || 'An error occurred'
+
+      if (status === 404) {
+        setError('Professional not found')
+        setErrorType('not_found')
+      } else if (status === 403) {
+        setError('You do not have permission to view this professional')
+        setErrorType('forbidden')
+      } else if (status === 500) {
+        setError('Server error. Please try again later.')
+        setErrorType('server_error')
+      } else if (status === 401) {
+        setError('Please log in to view this professional')
+        setErrorType('unauthorized')
+      } else {
+        setError(message || 'An unexpected error occurred')
+        setErrorType('unknown')
+      }
+      
+      // Don't clear professional data on error to show fallback UI
+      console.error('Failed to fetch professional data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [id])
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profRes, articlesRes, reviewsRes] = await Promise.all([
-          professionalService.getById(id),
-          professionalService.getArticles(id),
-          professionalService.getReviews(id),
-        ])
-        setProfessional(profRes.data)
-        setArticles(articlesRes.data.results || articlesRes.data)
-        setReviews(reviewsRes.data.results || reviewsRes.data)
-      } catch (error) {
-        console.error('Failed to fetch professional:', error)
-      } finally {
-        setLoading(false)
-      }
+    // Only fetch if we have a valid id
+    if (id) {
+      fetchData()
     }
+  }, [id, fetchData])
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1)
     fetchData()
-  }, [id])
+  }
 
   const handleFollow = async () => {
     if (!isAuthenticated) {
       // Redirect to login
+      window.location.href = '/login'
       return
     }
     try {
@@ -47,6 +91,16 @@ function ProfessionalDetailPage() {
     }
   }
 
+  const handleMessage = () => {
+    if (!isAuthenticated) {
+      window.location.href = '/login'
+      return
+    }
+    // Navigate to message page with professional id
+    window.location.href = `/messages?expert_id=${id}`
+  }
+
+  // Show loading spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -55,10 +109,55 @@ function ProfessionalDetailPage() {
     )
   }
 
-  if (!professional) {
+  // Show error state (not "not found" for permission/server errors)
+  if (error && errorType !== 'not_found') {
+    const isRetryable = errorType === 'server_error' || errorType === 'unknown'
+    
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col items-center justify-center min-h-[400px] space-y-4"
+      >
+        <AlertCircle className={`w-16 h-16 ${errorType === 'forbidden' ? 'text-yellow-500' : errorType === 'unauthorized' ? 'text-blue-500' : 'text-red-500'}`} />
+        <p className="text-lg text-gray-700 dark:text-gray-300">{error}</p>
+        {isRetryable && (
+          <button
+            onClick={handleRetry}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Retry</span>
+          </button>
+        )}
+        {errorType === 'unauthorized' && (
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="btn-outline"
+          >
+            Log In
+          </button>
+        )}
+      </motion.div>
+    )
+  }
+
+  // Show "not found" only for actual 404 errors
+  if (!professional && errorType === 'not_found') {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">Professional not found</p>
+        <AlertCircle className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+        <p className="text-gray-500 dark:text-gray-400 text-lg">Professional not found</p>
+        <p className="text-sm text-gray-400 mt-2">The professional you're looking for doesn't exist or has been removed.</p>
+      </div>
+    )
+  }
+
+  // If professional is null but no error, show loading (shouldn't happen normally)
+  if (!professional) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600" />
       </div>
     )
   }
@@ -116,7 +215,7 @@ function ProfessionalDetailPage() {
                 <Users className="w-4 h-4 mr-2" />
                 {isFollowing ? 'Following' : 'Follow'}
               </button>
-              <button className="btn-outline">
+              <button onClick={handleMessage} className="btn-outline">
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Message
               </button>
@@ -170,7 +269,7 @@ function ProfessionalDetailPage() {
       )}
 
       {/* Articles */}
-      {articles.length > 0 && (
+      {articles.length > 0 ? (
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Recent Articles
@@ -188,10 +287,17 @@ function ProfessionalDetailPage() {
             ))}
           </div>
         </div>
+      ) : (
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Recent Articles
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">No articles published yet.</p>
+        </div>
       )}
 
       {/* Reviews */}
-      {reviews.length > 0 && (
+      {reviews.length > 0 ? (
         <div className="card p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Reviews
@@ -218,6 +324,13 @@ function ProfessionalDetailPage() {
               </div>
             ))}
           </div>
+        </div>
+      ) : (
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Reviews
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400">No reviews yet.</p>
         </div>
       )}
     </motion.div>

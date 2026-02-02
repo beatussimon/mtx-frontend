@@ -72,7 +72,7 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor with retry logic
+// Response interceptor with retry logic and error handling
 api.interceptors.response.use(
   response => response,
   async (error) => {
@@ -110,6 +110,26 @@ api.interceptors.response.use(
         // Refresh failed - clear auth state and redirect to login
         useAuthStore.getState().logout()
         window.location.href = '/login'
+      }
+    }
+
+    // Enhance error response with more context
+    if (error.response) {
+      const { status, data } = error.response
+      
+      // For 403 errors, provide a clearer message
+      if (status === 403) {
+        error.errorMessage = data?.detail || 'Access denied. You do not have permission to perform this action.'
+      }
+      
+      // For 500 errors, provide a server error message
+      if (status === 500) {
+        error.errorMessage = data?.error || 'Server error. Please try again later.'
+      }
+      
+      // For 404 errors, provide a not found message
+      if (status === 404) {
+        error.errorMessage = data?.detail || 'The requested resource was not found.'
       }
     }
 
