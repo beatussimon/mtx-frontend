@@ -24,45 +24,47 @@ function ProfessionalDetailPage() {
     setLoading(true)
 
     try {
-      const requests = [
-        professionalService.getById(id),
-        professionalService.getArticles(id),
-        professionalService.getReviews(id),
-      ]
-
-      const [profRes, articlesRes, reviewsRes] = await Promise.all(requests)
-      
+      // Fetch professional first - this is the main data
+      const profRes = await professionalService.getById(id)
       setProfessional(profRes.data)
-      setArticles(articlesRes.data.results || articlesRes.data)
-      setReviews(reviewsRes.data.results || reviewsRes.data)
-      setError(null)
-      setErrorType(null)
     } catch (err) {
       const status = err.response?.status
-      const message = err.response?.data?.detail || err.response?.data?.error || 'An error occurred'
-
+      
       if (status === 404) {
         setError('Professional not found')
         setErrorType('not_found')
-      } else if (status === 403) {
-        setError('You do not have permission to view this professional')
-        setErrorType('forbidden')
       } else if (status === 500) {
         setError('Server error. Please try again later.')
         setErrorType('server_error')
-      } else if (status === 401) {
-        setError('Please log in to view this professional')
-        setErrorType('unauthorized')
       } else {
-        setError(message || 'An unexpected error occurred')
+        setError(err.response?.data?.detail || 'An error occurred')
         setErrorType('unknown')
       }
-      
-      // Don't clear professional data on error to show fallback UI
-      console.error('Failed to fetch professional data:', err)
-    } finally {
       setLoading(false)
+      return
     }
+
+    // Fetch articles and reviews independently - non-blocking
+    // These should work for all authenticated users but can fail gracefully
+    try {
+      const articlesRes = await professionalService.getArticles(id)
+      setArticles(articlesRes.data.results || articlesRes.data)
+    } catch (articlesErr) {
+      console.warn('Failed to fetch articles:', articlesErr)
+      // Don't fail the page for articles
+      setArticles([])
+    }
+
+    try {
+      const reviewsRes = await professionalService.getReviews(id)
+      setReviews(reviewsRes.data.results || reviewsRes.data)
+    } catch (reviewsErr) {
+      console.warn('Failed to fetch reviews:', reviewsErr)
+      // Don't fail the page for reviews
+      setReviews([])
+    }
+
+    setLoading(false)
   }, [id])
 
   useEffect(() => {

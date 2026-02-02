@@ -55,8 +55,8 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
-    // Set higher default limit for list endpoints
-    if (config.method === 'get' && !config.params?.limit) {
+    // Set higher default limit for list endpoints only (not detail endpoints)
+    if (config.method === 'get' && !config.params?.limit && !config.url?.match(/\/\d+\//)) {
       if (config.url?.includes('/articles') || 
           config.url?.includes('/research') || 
           config.url?.includes('/professionals') ||
@@ -180,6 +180,7 @@ export const articleService = {
   like: (id) => api.post(`/api/v1/articles/${id}/like/`),
   share: (id) => api.post(`/api/v1/articles/${id}/share/`),
   getComments: (id) => api.get(`/api/v1/articles/${id}/comments/`),
+  createComment: (id, data) => api.post(`/api/v1/articles/${id}/comments/`, data),
   getTrending: () => api.get('/api/v1/articles/trending/'),
   getTop: () => api.get('/api/v1/articles/top/'),
 }
@@ -191,6 +192,8 @@ export const researchService = {
   create: (data) => api.post('/api/v1/research/', data),
   like: (id) => api.post(`/api/v1/research/${id}/like/`),
   share: (id) => api.post(`/api/v1/research/${id}/share/`),
+  getComments: (id) => api.get(`/api/v1/research/${id}/comments/`),
+  createComment: (id, data) => api.post(`/api/v1/research/${id}/comments/`, data),
   getTop: () => api.get('/api/v1/research/top/'),
 }
 
