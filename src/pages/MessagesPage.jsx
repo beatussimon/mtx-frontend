@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Send, User, Image, Paperclip, MoreVertical, Phone, Video, ArrowLeft } from 'lucide-react'
-import { messageService, conversationService } from '../services/api'
+import { messageService, conversationService, professionalService } from '../services/api'
 import { useAuthStore, tierHelpers } from '../store'
 
 function MessagesPage() {
   const { user, tierInfo } = useAuthStore()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [conversations, setConversations] = useState([])
   const [selectedConversation, setSelectedConversation] = useState(null)
   const [messages, setMessages] = useState([])
@@ -18,7 +21,7 @@ function MessagesPage() {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
-  
+
   const isProfessional = tierHelpers.isProfessional(tierInfo)
   const isPremium = tierHelpers.isPremium(tierInfo)
 
@@ -37,6 +40,55 @@ function MessagesPage() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Handle expert_id query parameter
+  useEffect(() => {
+    const expertId = searchParams.get('expert_id')
+    if (expertId && conversations.length > 0 && canMessage) {
+      handleExpertId(expertId)
+    }
+  }, [searchParams, conversations, canMessage])
+
+  const handleExpertId = async (expertId) => {
+    try {
+      // Check if conversation already exists with this expert
+      const existingConversation = conversations.find(conv => {
+        const otherParticipant = getOtherParticipant(conv)
+        return otherParticipant?.id == expertId
+      })
+
+      if (existingConversation) {
+        // Select existing conversation
+        setSelectedConversation(existingConversation)
+      } else {
+        // Create new conversation
+        const formData = new FormData()
+        formData.append('recipient_id', expertId)
+
+        const response = await messageService.send(formData)
+        // This should create a conversation and return the message
+        // But we need to refresh conversations to get the new conversation
+        await fetchConversations()
+
+        // Find the newly created conversation
+        const updatedConversations = await conversationService.getAll()
+        const newConversation = (updatedConversations.data.results || updatedConversations.data || []).find(conv => {
+          const otherParticipant = getOtherParticipant(conv)
+          return otherParticipant?.id == expertId
+        })
+
+        if (newConversation) {
+          setSelectedConversation(newConversation)
+        }
+      }
+
+      // Clear the query parameter
+      setSearchParams({})
+    } catch (error) {
+      console.error('Failed to handle expert messaging:', error)
+      setError('Failed to start conversation with expert')
+    }
+  }
 
   const fetchConversations = async () => {
     try {
@@ -153,28 +205,10 @@ function MessagesPage() {
     }
   }
 
-  // Show access denied message for basic users
+  // Redirect basic users to upgrade page
   if (!canMessage) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        className="flex flex-col items-center justify-center h-[calc(100vh-12rem)]"
-      >
-        <div className="w-20 h-20 bg-gray-100 dark:bg-dark-800 rounded-full flex items-center justify-center mb-6">
-          <User className="w-10 h-10 text-gray-400" />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Messaging Restricted
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
-          Messaging is available for Plus and Premium accounts. Upgrade to connect with experts.
-        </p>
-        <a href="/upgrade" className="btn-secondary">
-          View Plans
-        </a>
-      </motion.div>
-    )
+    navigate('/upgrade')
+    return null
   }
 
   return (

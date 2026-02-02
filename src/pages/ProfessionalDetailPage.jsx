@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Star, MapPin, Users, Award, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react'
 import { professionalService } from '../services/api'
@@ -7,7 +7,8 @@ import { useAuthStore } from '../store'
 
 function ProfessionalDetailPage() {
   const { id } = useParams()
-  const { isAuthenticated, token } = useAuthStore()
+  const navigate = useNavigate()
+  const { isAuthenticated, token, tierInfo } = useAuthStore()
   const [professional, setProfessional] = useState(null)
   const [articles, setArticles] = useState([])
   const [reviews, setReviews] = useState([])
@@ -82,7 +83,7 @@ function ProfessionalDetailPage() {
   const handleFollow = async () => {
     if (!isAuthenticated) {
       // Redirect to login
-      window.location.href = '/login'
+      navigate('/login')
       return
     }
     try {
@@ -95,11 +96,46 @@ function ProfessionalDetailPage() {
 
   const handleMessage = () => {
     if (!isAuthenticated) {
-      window.location.href = '/login'
+      navigate('/login')
       return
     }
-    // Navigate to message page with professional id
-    window.location.href = `/messages?expert_id=${id}`
+
+    // Check if tierInfo is loaded
+    if (!tierInfo) {
+      alert('Loading user information. Please try again.')
+      return
+    }
+
+    // Check user tier and expert messaging preferences
+    if (tierInfo.tier === 'basic') {
+      // Basic users cannot message
+      alert('Messaging is available for Plus and Premium accounts. Please upgrade your account.')
+      navigate('/upgrade')
+      return
+    }
+
+    if (tierInfo.tier === 'plus') {
+      // Plus users need to book consultation first
+      alert('To message this expert, you need to book a consultation first. This feature is coming soon. For instant messaging, upgrade to Premium.')
+      navigate('/upgrade')
+      return
+    }
+
+    // Premium users can message if expert allows instant messaging
+    if (tierInfo.tier === 'premium') {
+      if (professional?.allow_instant_messaging) {
+        // Expert allows instant messaging
+        navigate(`/messages?expert_id=${id}`)
+      } else {
+        // Expert requires consultation booking
+        alert('This expert requires booking a consultation before messaging. This feature is coming soon. Please contact support for assistance.')
+        navigate('/upgrade')
+      }
+      return
+    }
+
+    // Fallback
+    navigate(`/messages?expert_id=${id}`)
   }
 
   // Show loading spinner
@@ -134,7 +170,7 @@ function ProfessionalDetailPage() {
         )}
         {errorType === 'unauthorized' && (
           <button
-            onClick={() => window.location.href = '/login'}
+            onClick={() => navigate('/login')}
             className="btn-outline"
           >
             Log In
