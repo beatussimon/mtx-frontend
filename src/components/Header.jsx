@@ -157,14 +157,14 @@ function Header() {
 
             {isAuthenticated ? (
               <>
-                {/* Tier indicator / Upgrade CTA */}
+                {/* Tier indicator / contextual upgrade prompt */}
                 {upgradeCTA && (
                   <Link
                     to="/upgrade"
                     className={`hidden sm:flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                       upgradeCTA === 'Premium'
                         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                        : 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400'
+                        : 'bg-gray-100 dark:bg-dark-700 text-gray-600 dark:text-gray-400'
                     }`}
                   >
                     {upgradeCTA === 'Premium' ? (
@@ -172,7 +172,7 @@ function Header() {
                     ) : (
                       <Zap className="w-4 h-4" />
                     )}
-                    <span>{upgradeCTA}</span>
+                    <span>{upgradeCTA === 'Premium' ? 'Premium' : 'Plus'}</span>
                   </Link>
                 )}
 
@@ -348,11 +348,11 @@ function Header() {
                         {upgradeCTA && (
                           <Link
                             to="/upgrade"
-                            className="flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors text-primary-600 dark:text-primary-400"
+                            className="flex items-center space-x-2 px-4 py-3 hover:bg-gray-50 dark:hover:bg-dark-700 transition-colors text-gray-600 dark:text-gray-400"
                             onClick={() => setShowUserMenu(false)}
                           >
                             <Crown className="w-4 h-4" />
-                            <span className="text-sm font-medium">{upgradeCTA} to Premium</span>
+                            <span className="text-sm font-medium">{upgradeCTA === 'Premium' ? 'Premium Features' : 'Plus Features'}</span>
                           </Link>
                         )}
                         <hr className="border-gray-200 dark:border-dark-700" />

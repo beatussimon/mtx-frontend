@@ -165,14 +165,13 @@ function MessagesPage() {
           <User className="w-10 h-10 text-gray-400" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Messaging Unavailable
+          Messaging Restricted
         </h2>
         <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-6">
-          Messaging is available for Professional and Premium users only. 
-          Upgrade your account to start messaging experts.
+          Messaging is available for Plus and Premium accounts. Upgrade to connect with experts.
         </p>
-        <a href="/upgrade" className="btn-primary">
-          Upgrade to Professional
+        <a href="/upgrade" className="btn-secondary">
+          View Plans
         </a>
       </motion.div>
     )

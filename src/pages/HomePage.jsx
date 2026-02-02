@@ -222,8 +222,8 @@ function HomePage() {
                 {tierHelpers.getDisplayTier(tierInfo)}
               </span>
               {upgradeCTA && (
-                <Link to="/upgrade" className="text-xs text-primary-600 dark:text-primary-400 hover:underline">
-                  {upgradeCTA}
+                <Link to="/upgrade" className="text-xs text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400">
+                  {upgradeCTA === 'Premium' ? 'Unlock Premium' : 'Available on Plus'}
                 </Link>
               )}
             </motion.div>

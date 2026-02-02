@@ -145,10 +145,10 @@ function UpgradePage() {
           <Shield className="w-10 h-10 text-primary-600" />
         </div>
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Upgrade Your Account
+          Account Plans
         </h1>
         <p className="text-gray-500 dark:text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-          Sign up or log in to upgrade your account and unlock premium features
+          Sign up or log in to access additional features and benefits
         </p>
         <div className="flex justify-center gap-4">
           <Link to="/register" className="btn-primary px-8 py-3">
@@ -171,10 +171,10 @@ function UpgradePage() {
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          Upgrade Your Account
+          Account Plans
         </h1>
         <p className="text-gray-500 dark:text-gray-400 text-lg max-w-2xl mx-auto">
-          Choose the plan that fits your needs and unlock premium features
+          Choose the plan that fits your needs
         </p>
       </div>
 
@@ -276,7 +276,7 @@ function UpgradePage() {
                   </button>
                 ) : (
                   <button disabled className="btn w-full opacity-50 cursor-not-allowed">
-                    {isBasic && tier.id === 'premium' ? 'Upgrade to Plus first' : 'Not available'}
+                    {isBasic && tier.id === 'premium' ? 'Plus plan required' : 'Not available'}
                   </button>
                 )}
               </div>

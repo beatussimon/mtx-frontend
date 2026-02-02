@@ -93,15 +93,15 @@ function Sidebar() {
           </Link>
         ))}
 
-        {/* Upgrade CTA for basic users */}
+        {/* Contextual upgrade prompt */}
         {isAuthenticated && upgradeCTA && (
           <Link
             to="/upgrade"
             onClick={closeSidebar}
-            className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-dark-700 transition-colors"
           >
             <Crown className="w-5 h-5" />
-            <span className="font-medium">{upgradeCTA} to Premium</span>
+            <span className="font-medium">{upgradeCTA === 'Premium' ? 'Premium Features' : 'Plus Features'}</span>
           </Link>
         )}
       </nav>

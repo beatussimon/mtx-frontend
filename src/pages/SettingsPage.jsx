@@ -621,8 +621,8 @@ function SettingsPage() {
                     </p>
                   </div>
                   {isPlus && !isPremium && (
-                    <button onClick={() => navigate('/upgrade')} className="btn-primary text-sm">
-                      Upgrade to Premium
+                    <button onClick={() => navigate('/upgrade')} className="btn-secondary text-sm">
+                      View Premium Features
                     </button>
                   )}
                 </div>

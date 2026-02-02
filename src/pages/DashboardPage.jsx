@@ -199,54 +199,54 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Upgrade prompt for Basic users */}
+      {/* Contextual upgrade prompt for Basic users - shows only when trying to access restricted features */}
       {isBasic && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-6 bg-gradient-to-r from-primary-500 to-primary-700 rounded-xl"
+          className="card p-6 bg-gray-50 dark:bg-dark-800 rounded-xl border border-gray-200 dark:border-dark-700"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">
-                Unlock Full Access
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                Unlock Professional Features
               </h2>
-              <p className="text-primary-100">
-                Upgrade to Professional to initiate consultations, message experts, and apply for jobs.
+              <p className="text-gray-600 dark:text-gray-400">
+                Initiate consultations, message experts, and apply for jobs with a Plus account.
               </p>
             </div>
             <Link
               to="/upgrade"
-              className="btn bg-white text-primary-600 hover:bg-primary-50 px-6 py-3 flex-shrink-0"
+              className="btn-secondary text-sm"
             >
-              Upgrade Now
+              Learn More
             </Link>
           </div>
         </motion.div>
       )}
 
-      {/* Professional upgrade prompt */}
+      {/* Contextual upgrade prompt for Plus users */}
       {isProfessional && !isPremium && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card p-6 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl"
+          className="card p-6 bg-yellow-50 dark:bg-yellow-900/10 rounded-xl border border-yellow-200 dark:border-yellow-800"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                <Crown className="w-6 h-6" />
-                Become a Premium Expert
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
+                <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                Premium Features Available
               </h2>
-              <p className="text-yellow-100">
-                Get verified, appear in Top Experts, sell digital items and merch, and access premium features.
+              <p className="text-gray-600 dark:text-gray-400">
+                Get verified, appear in Top Experts, and sell digital items with Premium.
               </p>
             </div>
             <Link
               to="/upgrade"
-              className="btn bg-white text-yellow-600 hover:bg-yellow-50 px-6 py-3 flex-shrink-0"
+              className="btn-secondary text-sm"
             >
-              Go Premium
+              Learn More
             </Link>
           </div>
         </motion.div>
@@ -502,14 +502,6 @@ function DashboardPage() {
                       <p className="font-medium text-gray-900 dark:text-white">Add Merch</p>
                     </Link>
                   </>
-                )}
-
-                {/* Upgrade CTA for Basic */}
-                {isBasic && (
-                  <Link to="/upgrade" className="p-4 rounded-lg bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors">
-                    <Crown className="w-6 h-6 text-primary-600 mb-2" />
-                    <p className="font-medium text-primary-700 dark:text-primary-400">Upgrade to Professional</p>
-                  </Link>
                 )}
               </div>
             </div>
