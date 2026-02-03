@@ -127,7 +127,10 @@ export const useThemeStore = create(
 
       initTheme: () => {
         const { theme } = get()
-        document.documentElement.classList.add(theme)
+        // Only add if not already present
+        if (!document.documentElement.classList.contains(theme)) {
+          document.documentElement.classList.add(theme)
+        }
       },
     }),
     {
@@ -154,7 +157,7 @@ export const useUIStore = create((set) => ({
 export const tierHelpers = {
   isBasic: (tierInfo) => tierInfo?.is_basic === true || tierInfo?.tier === 'basic',
   isPlus: (tierInfo) => tierInfo?.is_plus === true || tierInfo?.tier === 'plus',
-  isProfessional: (tierInfo) => tierInfo?.is_plus === true || tierInfo?.tier === 'plus', // Backward compatibility
+  isProfessional: (tierInfo) => tierInfo?.is_professional === true || tierInfo?.tier === 'professional',
   isPremium: (tierInfo) => tierInfo?.is_premium === true || tierInfo?.tier === 'premium',
   canInitiateConsultation: (tierInfo) => tierInfo?.can_initiate_consultation === true ||
     ['plus', 'premium'].includes(tierInfo?.tier),

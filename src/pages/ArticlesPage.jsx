@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Star, Eye, Calendar, User, Filter, ChevronLeft, ChevronRight, Shield, AlertCircle } from 'lucide-react'
 import { articleService, categoryService } from '../services/api'
+import { VerificationBadge } from '../components/VerificationBadge'
 
 function ArticlesPage() {
   const [articles, setArticles] = useState([])
@@ -62,13 +63,11 @@ function ArticlesPage() {
     if (!author?.is_verified) return null
     
     return (
-      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
-        author.verification_level === 'gold'
-          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-          : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-      }`} title={`${author.verification_level || 'verified'} verified expert`}>
-        <Shield className="w-3 h-3 mr-1" />
-        {author.verification_level === 'gold' ? 'Gold' : 'Verified'}
+      <span className="inline-flex items-center">
+        {author.username}
+        {author.verification_level && (
+          <VerificationBadge type={author.verification_level} />
+        )}
       </span>
     )
   }

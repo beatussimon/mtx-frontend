@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Star, MapPin, Users, Award, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react'
+import { Star, MapPin, Users, Award, MessageSquare, AlertCircle, RefreshCw, Calendar, Clock } from 'lucide-react'
 import { professionalService } from '../services/api'
 import { useAuthStore } from '../store'
+import { ExpertBadge } from '../components/VerificationBadge'
 
 function ProfessionalDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAuthenticated, token, tierInfo } = useAuthStore()
+  const { isAuthenticated, token, tierInfo, user } = useAuthStore()
   const [professional, setProfessional] = useState(null)
   const [articles, setArticles] = useState([])
   const [reviews, setReviews] = useState([])
@@ -17,6 +18,7 @@ function ProfessionalDetailPage() {
   const [error, setError] = useState(null)
   const [errorType, setErrorType] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [isOwnProfile, setIsOwnProfile] = useState(false)
 
   const fetchData = useCallback(async () => {
     // Reset error state
@@ -28,6 +30,11 @@ function ProfessionalDetailPage() {
       // Fetch professional first - this is the main data
       const profRes = await professionalService.getById(id)
       setProfessional(profRes.data)
+      
+      // Check if user is viewing their own profile
+      if (user && profRes.data.user && user.id === profRes.data.user.id) {
+        setIsOwnProfile(true)
+      }
     } catch (err) {
       const status = err.response?.status
       
@@ -46,13 +53,10 @@ function ProfessionalDetailPage() {
     }
 
     // Fetch articles and reviews independently - non-blocking
-    // These should work for all authenticated users but can fail gracefully
     try {
       const articlesRes = await professionalService.getArticles(id)
       setArticles(articlesRes.data.results || articlesRes.data)
     } catch (articlesErr) {
-      console.warn('Failed to fetch articles:', articlesErr)
-      // Don't fail the page for articles
       setArticles([])
     }
 
@@ -60,16 +64,13 @@ function ProfessionalDetailPage() {
       const reviewsRes = await professionalService.getReviews(id)
       setReviews(reviewsRes.data.results || reviewsRes.data)
     } catch (reviewsErr) {
-      console.warn('Failed to fetch reviews:', reviewsErr)
-      // Don't fail the page for reviews
       setReviews([])
     }
 
     setLoading(false)
-  }, [id])
+  }, [id, user])
 
   useEffect(() => {
-    // Only fetch if we have a valid id
     if (id) {
       fetchData()
     }
@@ -82,16 +83,36 @@ function ProfessionalDetailPage() {
 
   const handleFollow = async () => {
     if (!isAuthenticated) {
-      // Redirect to login
       navigate('/login')
       return
     }
+    
+    // Can't follow yourself
+    if (isOwnProfile) {
+      return
+    }
+    
     try {
       await professionalService.follow(id)
       setIsFollowing(!isFollowing)
     } catch (error) {
       console.error('Failed to follow:', error)
     }
+  }
+
+  const handleBookConsultation = () => {
+    if (!isAuthenticated) {
+      navigate('/login')
+      return
+    }
+    
+    // Can't book yourself
+    if (isOwnProfile) {
+      alert('You cannot book a consultation with yourself.')
+      return
+    }
+    
+    navigate(`/experts/${id}/consult`)
   }
 
   const handleMessage = () => {
@@ -229,7 +250,7 @@ function ProfessionalDetailPage() {
             <div className="flex-1 mt-4 md:mt-0 md:mb-2">
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {professional.user?.username}
+                  <ExpertBadge professional={professional} />
                 </h1>
                 {professional.is_verified && (
                   <Award className="w-5 h-5 text-primary-600" />
@@ -248,12 +269,28 @@ function ProfessionalDetailPage() {
             <div className="flex space-x-3 mt-4 md:mt-0 md:mb-2">
               <button
                 onClick={handleFollow}
-                className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'}`}
+                disabled={isOwnProfile || !isAuthenticated}
+                className={`btn ${isFollowing ? 'btn-secondary' : 'btn-primary'} ${isOwnProfile ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isOwnProfile ? "You cannot follow yourself" : undefined}
               >
                 <Users className="w-4 h-4 mr-2" />
                 {isFollowing ? 'Following' : 'Follow'}
               </button>
-              <button onClick={handleMessage} className="btn-outline">
+              <button
+                onClick={handleBookConsultation}
+                disabled={isOwnProfile}
+                className={`btn-outline ${isOwnProfile ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={isOwnProfile ? "You cannot book yourself" : undefined}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Book Consultation
+              </button>
+              <button 
+                onClick={handleMessage} 
+                className="btn-outline"
+                disabled={isOwnProfile}
+                title={isOwnProfile ? "You cannot message yourself" : undefined}
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Message
               </button>

@@ -205,6 +205,16 @@ export const consultationService = {
   getMyConsultations: () => api.get('/api/v1/consultations/my_consultations/'),
   getAsClient: () => api.get('/api/v1/consultations/as_client/'),
   getAsExpert: () => api.get('/api/v1/consultations/as_expert/'),
+  getStatus: (expertId) => api.get('/api/v1/consultations/status/', { params: { expert_id: expertId } }),
+}
+
+// Availability Slot Service
+export const availabilitySlotService = {
+  getAll: (params) => api.get('/api/v1/availability-slots/', { params }),
+  getById: (id) => api.get(`/api/v1/availability-slots/${id}/`),
+  create: (data) => api.post('/api/v1/availability-slots/', data),
+  getAvailable: (expertId) => api.get('/api/v1/availability-slots/available/', { params: { expert_id: expertId } }),
+  book: (slotId) => api.post('/api/v1/availability-slots/book/', { slot_id: slotId }),
 }
 
 // Consultation Task Service
@@ -239,6 +249,8 @@ export const messageService = {
   send: (data) => api.post('/api/v1/messages/', data),
   markAsRead: (id) => api.post(`/api/v1/messages/${id}/mark_read/`),
   markAllAsRead: () => api.post('/api/v1/messages/mark_all_read/'),
+  // New time-bound messaging endpoints
+  initiate: (data) => api.post('/api/v1/messages/initiate/', data),
 }
 
 // Payment Method Service

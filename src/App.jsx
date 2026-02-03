@@ -21,6 +21,7 @@ import UpgradePage from './pages/UpgradePage'
 import FAQPage from './pages/FAQPage'
 import FeedbackPage from './pages/FeedbackPage'
 import SettingsPage from './pages/SettingsPage'
+import ConsultBookingPage from './pages/ConsultBookingPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -131,6 +132,16 @@ function App() {
           element={
             <ProtectedRoute>
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Consultation Booking Route */}
+        <Route
+          path="experts/:expertId/consult"
+          element={
+            <ProtectedRoute>
+              <ConsultBookingPage />
             </ProtectedRoute>
           }
         />

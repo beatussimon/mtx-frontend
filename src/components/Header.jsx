@@ -221,6 +221,13 @@ function Header() {
                                 key={notification.id}
                                 className="p-4 border-b border-gray-100 dark:border-dark-700 hover:bg-gray-50 dark:hover:bg-dark-700 cursor-pointer"
                                 onClick={() => {
+                                  if (!notification.is_read) {
+                                    notificationService.markAsRead(notification.id).catch(console.error)
+                                    setNotifications(prev => prev.map(n => 
+                                      n.id === notification.id ? { ...n, is_read: true } : n
+                                    ))
+                                    setUnreadCount(prev => Math.max(0, prev - 1))
+                                  }
                                   navigate(notification.link || '/notifications')
                                   setShowNotifications(false)
                                 }}
